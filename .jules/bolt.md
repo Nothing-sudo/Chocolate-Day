@@ -1,0 +1,3 @@
+## 2024-07-21 - WebGL Static Buffer Caching
+**Learning:** Constant creation of WebGL vertex and index buffers (`gl.createBuffer()`) and subsequent data uploads (`gl.bufferData()`) inside a high-frequency rendering loop (e.g. 18 times per frame in a fluid simulation blit function) is a major performance bottleneck. This pattern places significant memory allocation and garbage collection pressure on the JavaScript engine and overhead on the GPU driver, which can cause micro-stutters and frame rate drops.
+**Action:** Always allocate static WebGL geometry buffers once during application startup or initialization, upload the data, and then bind and reuse those global buffers within rendering functions (like `blit`).
