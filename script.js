@@ -137,19 +137,27 @@ function createShader(sourceCode, type) {
   return shader;
 }
 
+// Pre-allocate WebGL static buffers once to avoid GC overhead and memory leaks in the high-frequency render loop (blit)
+const blitVertexBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, blitVertexBuffer);
+gl.bufferData(
+  gl.ARRAY_BUFFER,
+  new Float32Array([-1, -1, -1, 1, 1, 1, 1, -1]),
+  gl.STATIC_DRAW
+);
+
+const blitIndexBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, blitIndexBuffer);
+gl.bufferData(
+  gl.ELEMENT_ARRAY_BUFFER,
+  new Uint16Array([0, 1, 2, 0, 2, 3]),
+  gl.STATIC_DRAW
+);
+
 function blit(target) {
-  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([-1, -1, -1, 1, 1, 1, 1, -1]),
-    gl.STATIC_DRAW
-  );
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(
-    gl.ELEMENT_ARRAY_BUFFER,
-    new Uint16Array([0, 1, 2, 0, 2, 3]),
-    gl.STATIC_DRAW
-  );
+  // Reuse the pre-allocated static buffers to avoid creating new WebGLBuffers and array memory allocations per frame
+  gl.bindBuffer(gl.ARRAY_BUFFER, blitVertexBuffer);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, blitIndexBuffer);
   gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(0);
 
