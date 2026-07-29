@@ -1,0 +1,3 @@
+## 2024-07-29 - Pre-allocated WebGL Geometry Buffers in Render Loop
+**Learning:** Creating and uploading buffer data to the GPU using `gl.createBuffer()` and `gl.bufferData()` within the requestAnimationFrame render loop causes severe heap allocation pressure and redundant GPU data transfers, severely dragging down FPS. Instead, static geometry (like full-screen quads used for blitting) should have their buffers initialized once during application startup and bound/reused across frames.
+**Action:** Always inspect custom WebGL/Canvas rendering loops for any dynamic instantiation of WebGLResources (buffers, textures, shaders, framebuffers) and refactor them to be pre-allocated and bound dynamically.
