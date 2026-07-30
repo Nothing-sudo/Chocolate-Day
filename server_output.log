@@ -1,0 +1,12 @@
+127.0.0.1 - - [30/Jul/2026 09:10:26] "HEAD / HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jul/2026 09:11:14] "GET /index.html HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jul/2026 09:11:14] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jul/2026 09:11:14] "GET /images/new-year-images-for-chocolate-products-on-amazon-342405003.png HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jul/2026 09:11:14] "GET /images/chocolate-miki-asai-macro-photography-close-up-hyper-detailed-trending-on-artstation-sharp-focu-870544190.png HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jul/2026 09:12:13] "GET /index.html HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jul/2026 09:12:13] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jul/2026 09:12:13] "GET /images/new-year-images-for-chocolate-products-on-amazon-342405003.png HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jul/2026 09:12:13] "GET /images/chocolate-miki-asai-macro-photography-close-up-hyper-detailed-trending-on-artstation-sharp-focu-870544190.png HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jul/2026 09:12:15] "GET /new.html HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jul/2026 09:12:15] "GET /new.css HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jul/2026 09:12:15] "GET /script.js HTTP/1.1" 200 -

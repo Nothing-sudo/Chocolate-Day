@@ -32,6 +32,30 @@ gl.getExtension("OES_texture_float");
 
 let outputColor, velocity, divergence, pressure;
 
+// Global WebGL buffers for static quad geometry
+// Reusing these buffers prevents recreating and leaking buffers 15+ times per frame.
+let quadVertexBuffer, quadIndexBuffer;
+
+function initStaticBuffers() {
+  // Create and populate the static vertex buffer for a full-screen quad
+  quadVertexBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, quadVertexBuffer);
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array([-1, -1, -1, 1, 1, 1, 1, -1]),
+    gl.STATIC_DRAW
+  );
+
+  // Create and populate the static index buffer for the quad (two triangles)
+  quadIndexBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, quadIndexBuffer);
+  gl.bufferData(
+    gl.ELEMENT_ARRAY_BUFFER,
+    new Uint16Array([0, 1, 2, 0, 2, 3]),
+    gl.STATIC_DRAW
+  );
+}
+
 const vertexShader = createShader(
   document.getElementById("vertShader").innerHTML,
   gl.VERTEX_SHADER
@@ -44,6 +68,7 @@ const gradientSubtractProgram = createProgram("fragShaderGradientSubtract");
 const advectionProgram = createProgram("fragShaderAdvection");
 const displayProgram = createProgram("fragShaderDisplay");
 
+initStaticBuffers();
 initFBOs();
 render();
 image.style.opacity = "1";
@@ -138,20 +163,14 @@ function createShader(sourceCode, type) {
 }
 
 function blit(target) {
-  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([-1, -1, -1, 1, 1, 1, 1, -1]),
-    gl.STATIC_DRAW
-  );
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(
-    gl.ELEMENT_ARRAY_BUFFER,
-    new Uint16Array([0, 1, 2, 0, 2, 3]),
-    gl.STATIC_DRAW
-  );
+  // Bind the pre-allocated, static vertex buffer and set vertex attribute pointer
+  // This eliminates allocating new buffers and uploading data to GPU on every single blit call
+  gl.bindBuffer(gl.ARRAY_BUFFER, quadVertexBuffer);
   gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(0);
+
+  // Bind the pre-allocated, static index buffer
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, quadIndexBuffer);
 
   if (target == null) {
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
