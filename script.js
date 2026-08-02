@@ -32,6 +32,26 @@ gl.getExtension("OES_texture_float");
 
 let outputColor, velocity, divergence, pressure;
 
+// --- WebGL Static Buffer Optimization ---
+// Pre-allocate full-screen quad vertex and index buffers once during initialization.
+// This avoids continuous GPU memory allocation and data upload overhead inside the render loop.
+const positionBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+gl.bufferData(
+  gl.ARRAY_BUFFER,
+  new Float32Array([-1, -1, -1, 1, 1, 1, 1, -1]),
+  gl.STATIC_DRAW
+);
+
+const indexBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+gl.bufferData(
+  gl.ELEMENT_ARRAY_BUFFER,
+  new Uint16Array([0, 1, 2, 0, 2, 3]),
+  gl.STATIC_DRAW
+);
+// ----------------------------------------
+
 const vertexShader = createShader(
   document.getElementById("vertShader").innerHTML,
   gl.VERTEX_SHADER
@@ -138,20 +158,12 @@ function createShader(sourceCode, type) {
 }
 
 function blit(target) {
-  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([-1, -1, -1, 1, 1, 1, 1, -1]),
-    gl.STATIC_DRAW
-  );
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(
-    gl.ELEMENT_ARRAY_BUFFER,
-    new Uint16Array([0, 1, 2, 0, 2, 3]),
-    gl.STATIC_DRAW
-  );
+  // Bind pre-allocated static vertex and index buffers instead of creating them dynamically per frame.
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
   gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(0);
+
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 
   if (target == null) {
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
