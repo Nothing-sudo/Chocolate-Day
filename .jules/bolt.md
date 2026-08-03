@@ -1,0 +1,3 @@
+## 2026-08-03 - WebGL Static Geometry Buffer Recreation in Rendering Loop
+**Learning:** Re-creating and re-uploading WebGL vertex and index buffers (e.g., using `gl.createBuffer()` and `gl.bufferData()`) inside a loop or function like `blit()` that runs many times per frame creates severe CPU-to-GPU overhead and causes major garbage collection pressure in JS, resulting in frame stutter and high resource consumption. WebGL static geometry buffers should always be allocated once and bound/reused inside rendering functions.
+**Action:** Always inspect rendering loops for any dynamic allocations (buffers, textures, shaders, framebuffers) and cache/reuse them aggressively.

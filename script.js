@@ -31,6 +31,9 @@ const gl = canvas.getContext("webgl");
 gl.getExtension("OES_texture_float");
 
 let outputColor, velocity, divergence, pressure;
+// Performance optimization (Bolt ⚡): Cache WebGL static geometry buffers for full-screen quad
+let vertexBuffer = null;
+let indexBuffer = null;
 
 const vertexShader = createShader(
   document.getElementById("vertShader").innerHTML,
@@ -138,18 +141,33 @@ function createShader(sourceCode, type) {
 }
 
 function blit(target) {
-  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([-1, -1, -1, 1, 1, 1, 1, -1]),
-    gl.STATIC_DRAW
-  );
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(
-    gl.ELEMENT_ARRAY_BUFFER,
-    new Uint16Array([0, 1, 2, 0, 2, 3]),
-    gl.STATIC_DRAW
-  );
+  // Performance optimization (Bolt ⚡): Reuse cached WebGL buffers for static full-screen quad.
+  // This eliminates two GPU allocations (gl.createBuffer) and data uploads (gl.bufferData)
+  // per blit call inside the render loop, which drastically reduces CPU/GPU overhead and GC pressure.
+  if (!vertexBuffer) {
+    vertexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([-1, -1, -1, 1, 1, 1, 1, -1]),
+      gl.STATIC_DRAW
+    );
+  } else {
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+  }
+
+  if (!indexBuffer) {
+    indexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+    gl.bufferData(
+      gl.ELEMENT_ARRAY_BUFFER,
+      new Uint16Array([0, 1, 2, 0, 2, 3]),
+      gl.STATIC_DRAW
+    );
+  } else {
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+  }
+
   gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(0);
 
