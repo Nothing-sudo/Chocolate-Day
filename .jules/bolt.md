@@ -1,0 +1,3 @@
+## 2026-08-04 - Static WebGL Buffer Re-use Optimization
+**Learning:** Creating and destroying WebGL buffer objects (e.g., using `gl.createBuffer()` and `gl.bufferData()`) inside the active render loop (e.g. inside `blit()`) creates severe memory overhead, GC pauses, driver overhead, and eventual memory leak issues. Creating static buffers exactly once during WebGL context initialization and simply binding and reusing them in the draw calls dramatically reduces driver allocations and CPU-to-GPU bandwidth.
+**Action:** Avoid allocating any WebGL resource (buffers, shaders, textures, framebuffers) inside functions that execute per-frame (e.g. `blit` or `render`). Perform all resource creation once at setup, and reuse pre-allocated resources in the loop.
