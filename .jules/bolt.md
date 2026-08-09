@@ -1,0 +1,3 @@
+## 2026-08-09 - Reuse Static WebGL Geometry Buffers
+**Learning:** Creating and binding WebGL buffers dynamically inside the high-frequency render or blit loop (e.g., using `gl.createBuffer()` and `gl.bufferData()` on every frame) results in massive CPU-to-GPU data transfer overhead and severe Garbage Collection (GC) pauses due to constant allocations. Caching full-screen quad vertex and index buffers during initialization or lazily once eliminates these performance bottlenecks entirely.
+**Action:** Always pre-allocate static geometry buffers once, and bind/reuse them instead of re-allocating them in render loops.
