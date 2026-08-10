@@ -1,0 +1,3 @@
+## 2026-08-10 - Pre-allocate Static WebGL Buffers
+**Learning:** Allocating WebGL vertex and index buffers per-frame inside utility/drawing routines like blit() causes severe garbage collection pauses and CPU-to-GPU driver overhead, particularly in high-frequency rendering loops (~60 FPS). Even though standard full-screen quad coordinates never change, dynamic allocations of these buffers inside blit() degrades performance and causes frames to stutter.
+**Action:** Always pre-allocate static WebGL geometry buffers (like full-screen quad vertex and index buffers) once during WebGL context initialization and bind/reuse them inside the draw loop.
