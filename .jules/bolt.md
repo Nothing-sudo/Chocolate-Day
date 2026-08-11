@@ -1,0 +1,3 @@
+## 2026-03-06 - WebGL Buffer Allocation Optimization
+**Learning:** Instantiating and uploading dynamic vertex and index buffers (via `gl.createBuffer()` and `gl.bufferData()`) in every single execution of a full-screen quad blit in a high-frequency render loop creates significant performance overhead. It causes redundant CPU-GPU data transfers and triggers continuous Garbage Collection (GC) sweeps due to transient Float32Array and Uint16Array allocations.
+**Action:** Create the static quad vertex buffer and element index buffer once during initialization, cache them globally, and simply bind and point to them in the `blit` function, completely eliminating allocation and data-upload overhead inside the render loop.
