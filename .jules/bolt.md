@@ -1,0 +1,3 @@
+## 2024-11-20 - WebGL Static Geometry Buffer Pre-allocation
+**Learning:** Instantiating, binding, and writing data to WebGL vertex and element array buffers (`gl.createBuffer()` and `gl.bufferData()`) on every execution of a utility function (like `blit()`) called multiple times per frame creates heavy CPU-GPU overhead, triggers GPU resource allocation latency, and creates significant JS garbage collection pressure on the main thread.
+**Action:** Always pre-allocate static geometry buffers once during WebGL initialization, and simply bind and reuse them within render loops to eliminate garbage collection and allocation overhead completely.
