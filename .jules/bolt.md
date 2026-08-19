@@ -1,0 +1,3 @@
+## 2025-02-14 - WebGL Quad Buffer Pre-allocation
+**Learning:** In WebGL render loops, helper functions like `blit()` that execute repeatedly every frame (~16+ times/frame) should never allocate new WebGL buffers (`gl.createBuffer()`) or instantiate TypedArrays (`Float32Array`/`Uint16Array`). Pre-allocating quad vertex/index buffers once at init eliminates hundreds of allocations per second and prevents GC stutter.
+**Action:** Always check WebGL render loops (`blit`, `draw`, `render`) for object allocations (`new Float32Array()`, `gl.createBuffer()`) and hoist static buffer allocation to initialization scope.
