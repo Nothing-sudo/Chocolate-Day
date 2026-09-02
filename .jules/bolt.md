@@ -1,0 +1,3 @@
+## 2025-02-09 - Reuse Static WebGL Geometry Buffers in Render Loop
+**Learning:** Calling `gl.createBuffer()` and `gl.bufferData()` inside multi-pass full-screen quad `blit()` calls (invoked ~15-20x per frame) creates heavy CPU-GPU memory thrashing and garbage collection spikes. Pre-allocating vertex and element array buffers statically once during WebGL context initialization eliminates GPU memory re-allocation overhead completely during render loops.
+**Action:** Always pre-allocate static geometry buffers (like full-screen quad VBOs and IBOs) globally or during setup in WebGL apps and bind/reuse them within `blit` / draw calls.
