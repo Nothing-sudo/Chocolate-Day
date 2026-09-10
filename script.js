@@ -32,6 +32,28 @@ gl.getExtension("OES_texture_float");
 
 let outputColor, velocity, divergence, pressure;
 
+// Reuse static quad buffers to avoid per-blit CPU/GPU allocations and garbage collection spikes
+let quadVertexBuffer = null;
+let quadIndexBuffer = null;
+
+function initQuadBuffers() {
+  quadVertexBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, quadVertexBuffer);
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array([-1, -1, -1, 1, 1, 1, 1, -1]),
+    gl.STATIC_DRAW
+  );
+
+  quadIndexBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, quadIndexBuffer);
+  gl.bufferData(
+    gl.ELEMENT_ARRAY_BUFFER,
+    new Uint16Array([0, 1, 2, 0, 2, 3]),
+    gl.STATIC_DRAW
+  );
+}
+
 const vertexShader = createShader(
   document.getElementById("vertShader").innerHTML,
   gl.VERTEX_SHADER
@@ -44,6 +66,7 @@ const gradientSubtractProgram = createProgram("fragShaderGradientSubtract");
 const advectionProgram = createProgram("fragShaderAdvection");
 const displayProgram = createProgram("fragShaderDisplay");
 
+initQuadBuffers();
 initFBOs();
 render();
 image.style.opacity = "1";
@@ -138,18 +161,9 @@ function createShader(sourceCode, type) {
 }
 
 function blit(target) {
-  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([-1, -1, -1, 1, 1, 1, 1, -1]),
-    gl.STATIC_DRAW
-  );
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(
-    gl.ELEMENT_ARRAY_BUFFER,
-    new Uint16Array([0, 1, 2, 0, 2, 3]),
-    gl.STATIC_DRAW
-  );
+  // Bind pre-allocated quad vertex and index buffers
+  gl.bindBuffer(gl.ARRAY_BUFFER, quadVertexBuffer);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, quadIndexBuffer);
   gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(0);
 
