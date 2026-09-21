@@ -30,6 +30,23 @@ let prevTimestamp = Date.now();
 const gl = canvas.getContext("webgl");
 gl.getExtension("OES_texture_float");
 
+// Pre-allocate WebGL quad buffers once during initialization to avoid 17+ buffer allocations/uploads per frame in blit()
+const positionBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+gl.bufferData(
+  gl.ARRAY_BUFFER,
+  new Float32Array([-1, -1, -1, 1, 1, 1, 1, -1]),
+  gl.STATIC_DRAW
+);
+
+const elementBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementBuffer);
+gl.bufferData(
+  gl.ELEMENT_ARRAY_BUFFER,
+  new Uint16Array([0, 1, 2, 0, 2, 3]),
+  gl.STATIC_DRAW
+);
+
 let outputColor, velocity, divergence, pressure;
 
 const vertexShader = createShader(
@@ -138,18 +155,9 @@ function createShader(sourceCode, type) {
 }
 
 function blit(target) {
-  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([-1, -1, -1, 1, 1, 1, 1, -1]),
-    gl.STATIC_DRAW
-  );
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(
-    gl.ELEMENT_ARRAY_BUFFER,
-    new Uint16Array([0, 1, 2, 0, 2, 3]),
-    gl.STATIC_DRAW
-  );
+  // Reuse pre-allocated static buffers to eliminate per-frame WebGL object creation and garbage collection pressure
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementBuffer);
   gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(0);
 
