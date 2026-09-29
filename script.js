@@ -31,6 +31,7 @@ const gl = canvas.getContext("webgl");
 gl.getExtension("OES_texture_float");
 
 let outputColor, velocity, divergence, pressure;
+let quadVertexBuffer, quadIndexBuffer;
 
 const vertexShader = createShader(
   document.getElementById("vertShader").innerHTML,
@@ -44,6 +45,7 @@ const gradientSubtractProgram = createProgram("fragShaderGradientSubtract");
 const advectionProgram = createProgram("fragShaderAdvection");
 const displayProgram = createProgram("fragShaderDisplay");
 
+initBuffers();
 initFBOs();
 render();
 image.style.opacity = "1";
@@ -137,19 +139,30 @@ function createShader(sourceCode, type) {
   return shader;
 }
 
-function blit(target) {
-  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+// Initialize static quad geometry buffers once to prevent creating new WebGL buffers
+// and allocating typed arrays on every frame inside blit().
+function initBuffers() {
+  quadVertexBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, quadVertexBuffer);
   gl.bufferData(
     gl.ARRAY_BUFFER,
     new Float32Array([-1, -1, -1, 1, 1, 1, 1, -1]),
     gl.STATIC_DRAW
   );
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
+
+  quadIndexBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, quadIndexBuffer);
   gl.bufferData(
     gl.ELEMENT_ARRAY_BUFFER,
     new Uint16Array([0, 1, 2, 0, 2, 3]),
     gl.STATIC_DRAW
   );
+}
+
+function blit(target) {
+  // Bind pre-allocated quad geometry buffers instead of creating & re-uploading every frame
+  gl.bindBuffer(gl.ARRAY_BUFFER, quadVertexBuffer);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, quadIndexBuffer);
   gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(0);
 
