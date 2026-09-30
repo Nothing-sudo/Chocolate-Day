@@ -1,0 +1,3 @@
+## 2026-09-30 - WebGL Quad Buffer Pre-Allocation in Fluid Simulation Render Loop
+**Learning:** Re-creating `ARRAY_BUFFER` and `ELEMENT_ARRAY_BUFFER` WebGL buffers inside `blit()` calls (~15-17 times per frame at 60fps) generates >1,000 WebGL buffer allocations per second, causing GPU memory churn and CPU garbage collection stutter. Pre-allocating and binding static quad buffers once during initialization completely eliminates runtime buffer creation overhead.
+**Action:** When working with WebGL quad or full-screen post-processing passes, always initialize static quad vertex and index buffers once at startup and reuse them across draw calls in `requestAnimationFrame`.
