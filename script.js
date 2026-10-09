@@ -137,22 +137,28 @@ function createShader(sourceCode, type) {
   return shader;
 }
 
-function blit(target) {
-  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([-1, -1, -1, 1, 1, 1, 1, -1]),
-    gl.STATIC_DRAW
-  );
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(
-    gl.ELEMENT_ARRAY_BUFFER,
-    new Uint16Array([0, 1, 2, 0, 2, 3]),
-    gl.STATIC_DRAW
-  );
-  gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-  gl.enableVertexAttribArray(0);
+// Create static quad geometry buffers once during initialization to eliminate
+// buffer allocation and data upload overhead per frame (15+ blit calls/frame).
+const quadVertexBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, quadVertexBuffer);
+gl.bufferData(
+  gl.ARRAY_BUFFER,
+  new Float32Array([-1, -1, -1, 1, 1, 1, 1, -1]),
+  gl.STATIC_DRAW
+);
 
+const quadIndexBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, quadIndexBuffer);
+gl.bufferData(
+  gl.ELEMENT_ARRAY_BUFFER,
+  new Uint16Array([0, 1, 2, 0, 2, 3]),
+  gl.STATIC_DRAW
+);
+
+gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+gl.enableVertexAttribArray(0);
+
+function blit(target) {
   if (target == null) {
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
