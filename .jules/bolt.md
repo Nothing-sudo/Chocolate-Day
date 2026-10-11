@@ -1,0 +1,3 @@
+## 2026-10-11 - Pre-allocating WebGL Geometry Buffers in Render Pass
+**Learning:** In vanilla WebGL fluid simulations, functions like `blit()` are invoked up to ~16 times per frame (pressure iterations, advection, splatting, display). Recreating `ARRAY_BUFFER` and `ELEMENT_ARRAY_BUFFER` via `gl.createBuffer()` and re-uploading buffer data with `gl.bufferData()` on every `blit()` call creates thousands of GPU buffer allocations per second and high garbage collection pressure without ever freeing GPU resources.
+**Action:** Always pre-allocate static geometry buffers once during WebGL initialization and simply bind them inside render pass helpers like `blit()`.
