@@ -30,6 +30,23 @@ let prevTimestamp = Date.now();
 const gl = canvas.getContext("webgl");
 gl.getExtension("OES_texture_float");
 
+// Pre-allocate full-screen quad vertex and index buffers once to eliminate GPU buffer creation and GC overhead per frame (~15-17 calls/frame)
+const quadVertexBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, quadVertexBuffer);
+gl.bufferData(
+  gl.ARRAY_BUFFER,
+  new Float32Array([-1, -1, -1, 1, 1, 1, 1, -1]),
+  gl.STATIC_DRAW
+);
+
+const quadIndexBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, quadIndexBuffer);
+gl.bufferData(
+  gl.ELEMENT_ARRAY_BUFFER,
+  new Uint16Array([0, 1, 2, 0, 2, 3]),
+  gl.STATIC_DRAW
+);
+
 let outputColor, velocity, divergence, pressure;
 
 const vertexShader = createShader(
@@ -138,18 +155,9 @@ function createShader(sourceCode, type) {
 }
 
 function blit(target) {
-  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([-1, -1, -1, 1, 1, 1, 1, -1]),
-    gl.STATIC_DRAW
-  );
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(
-    gl.ELEMENT_ARRAY_BUFFER,
-    new Uint16Array([0, 1, 2, 0, 2, 3]),
-    gl.STATIC_DRAW
-  );
+  // Bind pre-allocated static full-screen quad buffers
+  gl.bindBuffer(gl.ARRAY_BUFFER, quadVertexBuffer);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, quadIndexBuffer);
   gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(0);
 
