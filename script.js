@@ -45,6 +45,7 @@ const advectionProgram = createProgram("fragShaderAdvection");
 const displayProgram = createProgram("fragShaderDisplay");
 
 initFBOs();
+initBlit();
 render();
 image.style.opacity = "1";
 
@@ -137,19 +138,34 @@ function createShader(sourceCode, type) {
   return shader;
 }
 
-function blit(target) {
-  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+// Static buffers for full-screen quad rendering to eliminate per-frame allocations
+let quadVertexBuffer;
+let quadElementBuffer;
+
+function initBlit() {
+  quadVertexBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, quadVertexBuffer);
   gl.bufferData(
     gl.ARRAY_BUFFER,
     new Float32Array([-1, -1, -1, 1, 1, 1, 1, -1]),
     gl.STATIC_DRAW
   );
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
+
+  quadElementBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, quadElementBuffer);
   gl.bufferData(
     gl.ELEMENT_ARRAY_BUFFER,
     new Uint16Array([0, 1, 2, 0, 2, 3]),
     gl.STATIC_DRAW
   );
+}
+
+// Performance optimization: reuse static quad buffers instead of allocating
+// new WebGL buffers and typed arrays on every render pass (~15-17 passes per frame).
+// Prevents GPU buffer leaks and eliminates garbage collection (GC) pauses.
+function blit(target) {
+  gl.bindBuffer(gl.ARRAY_BUFFER, quadVertexBuffer);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, quadElementBuffer);
   gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(0);
 
