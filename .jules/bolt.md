@@ -1,0 +1,3 @@
+## 2025-02-14 - WebGL Buffer Allocation in Frame Render Loop
+**Learning:** In WebGL applications, calling `gl.createBuffer()`, `gl.bufferData()`, and instantiating `Float32Array`/`Uint16Array` inside frequent rendering utility functions (like `blit()`) causes extreme GPU allocation churn and JavaScript garbage collection pressure (over 900+ allocations/sec at 60 FPS across 16 blit calls/frame).
+**Action:** Always pre-allocate static geometry buffers (such as full-screen quad vertex and index buffers) once during WebGL initialization and bind/reuse them inside the draw loop. Ensure static buffers are declared after WebGL context initialization but before any initial render frame calls.
