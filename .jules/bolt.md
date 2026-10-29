@@ -1,0 +1,3 @@
+## 2026-10-29 - Reuse WebGL Static Buffers in Render Loop
+**Learning:** Re-creating WebGL buffers (`gl.createBuffer()`) and instantiating typed arrays (`Float32Array`, `Uint16Array`) on every blit / draw call inside an animation loop generates over 2,000 buffer objects and typed array allocations per second. This causes severe garbage collection pauses and unnecessary CPU-to-GPU data transfers.
+**Action:** Always allocate static WebGL vertex and element array buffers once during initial context setup or shader compilation, and bind those existing buffers during full-screen quad blits and frame updates.
