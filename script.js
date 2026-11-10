@@ -44,6 +44,25 @@ const gradientSubtractProgram = createProgram("fragShaderGradientSubtract");
 const advectionProgram = createProgram("fragShaderAdvection");
 const displayProgram = createProgram("fragShaderDisplay");
 
+// Performance optimization: Pre-allocate static quad buffers once during initialization.
+// Previously, blit() created new buffers and uploaded vertex/index data on every invocation (~16+ times per frame).
+// Reusing these buffers eliminates ~2,000 WebGL allocations and memory copies per second at 60fps.
+const quadVertexBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, quadVertexBuffer);
+gl.bufferData(
+  gl.ARRAY_BUFFER,
+  new Float32Array([-1, -1, -1, 1, 1, 1, 1, -1]),
+  gl.STATIC_DRAW
+);
+
+const quadElementBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, quadElementBuffer);
+gl.bufferData(
+  gl.ELEMENT_ARRAY_BUFFER,
+  new Uint16Array([0, 1, 2, 0, 2, 3]),
+  gl.STATIC_DRAW
+);
+
 initFBOs();
 render();
 image.style.opacity = "1";
@@ -138,19 +157,10 @@ function createShader(sourceCode, type) {
 }
 
 function blit(target) {
-  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([-1, -1, -1, 1, 1, 1, 1, -1]),
-    gl.STATIC_DRAW
-  );
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(
-    gl.ELEMENT_ARRAY_BUFFER,
-    new Uint16Array([0, 1, 2, 0, 2, 3]),
-    gl.STATIC_DRAW
-  );
+  // Re-use pre-allocated static quad buffers instead of allocating and uploading per frame
+  gl.bindBuffer(gl.ARRAY_BUFFER, quadVertexBuffer);
   gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, quadElementBuffer);
   gl.enableVertexAttribArray(0);
 
   if (target == null) {
